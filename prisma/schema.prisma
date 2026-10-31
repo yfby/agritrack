@@ -1,0 +1,58 @@
+// Prisma schema for AgriTrack.
+//
+// To move to Postgres later:
+//   1. change `provider` below to "postgresql"
+//   2. point DATABASE_URL at your Postgres database
+//   3. run `pnpm db:migrate`
+// The models only use portable types (String / Int / DateTime), so no other
+// application code needs to change.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Harvest {
+  id        String   @id @default(cuid())
+  name      String
+  crop      String?
+  startDate DateTime
+  endDate   DateTime?
+  // "ACTIVE" | "CLOSED" (kept as a string so the schema stays portable)
+  status    String   @default("ACTIVE")
+  notes     String?
+  createdAt DateTime @default(now())
+
+  expenses Expense[]
+
+  @@index([createdAt])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String
+  createdAt DateTime @default(now())
+
+  expenses Expense[]
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  harvestId   String
+  categoryId  String
+  amountCents Int
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+
+  harvest  Harvest  @relation(fields: [harvestId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([harvestId, date])
+  @@index([categoryId])
+}

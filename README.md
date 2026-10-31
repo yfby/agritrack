@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AgriTrack
 
-## Getting Started
+A small, mobile-first expense tracker for farm harvests. Track what each season
+costs, broken down by category, without spreadsheets.
 
-First, run the development server:
+Built with Next.js (App Router), TypeScript, Tailwind CSS, Prisma + SQLite,
+Server Actions, and Zod.
+
+## Features
+
+- **Harvests** — create, edit, and delete harvests. The list shows the crop,
+  status, total spend, and expense count, newest first.
+- **Harvest detail** — category totals with percentages and horizontal bars,
+  plus a filterable/sortable expense list (filter by category, sort by date or
+  amount).
+- **Quick add** — add an expense without leaving the harvest page; the list and
+  totals refresh in place.
+- **Categories** — add, rename, recolor, and delete. Deleting a category that is
+  still used by an expense is blocked with an explanatory message.
+- **Close / reopen** — a closed harvest is read-only for expenses; reopen it to
+  make changes. Deleting a harvest removes its expenses.
+- **Validation** — every form is validated server-side with Zod (required
+  fields, valid dates, amount greater than zero).
+- **Money** — stored as integer centavos, never floating point, and formatted
+  with `Intl.NumberFormat`.
+
+## Getting started
+
+Requires Node.js 20+ and pnpm.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env
+pnpm db:migrate   # creates prisma/dev.db and runs the seed
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+If migrations have already been applied and you only need the default
+categories:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm db:seed
+```
 
-## Learn More
+The seed is idempotent and installs these categories: Seeds, Fertilizer,
+Pesticide/Herbicide, Labor, Fuel, Equipment & Repairs, Irrigation, Transport,
+and Other.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command          | What it does                                      |
+| ---------------- | ------------------------------------------------- |
+| `pnpm dev`       | Start the development server on port 3000.        |
+| `pnpm build`     | Production build.                                 |
+| `pnpm start`     | Serve the production build.                       |
+| `pnpm lint`      | Run ESLint.                                       |
+| `pnpm db:migrate`| Create/apply Prisma migrations in development.    |
+| `pnpm db:seed`   | Insert the default categories (safe to re-run).   |
+| `pnpm db:studio` | Open Prisma Studio to browse the database.        |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Configuration
 
-## Deploy on Vercel
+### Currency
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Money is stored as integer minor units (centavos × 100). The display currency
+comes from `NEXT_PUBLIC_CURRENCY` (default `PHP`), so switching to another
+ISO 4217 currency is a one-line change in `.env`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```dotenv
+NEXT_PUBLIC_CURRENCY="USD"
+```
+
+The prefix on amount inputs and all formatted totals follow the same value.
+
+### Database
+
+SQLite lives at `prisma/dev.db` and is git-ignored. `DATABASE_URL` in `.env`
+controls the connection:
+
+```dotenv
+DATABASE_URL="file:./dev.db"
+```
+
+The path is resolved relative to `prisma/schema.prisma`.
+
+## Data model
+
+- **Harvest** — `name`, optional `crop`, `startDate`, optional `endDate`,
+  `status` (`ACTIVE` / `CLOSED`), optional `notes`.
+- **Category** — unique `name` and a hex `color`.
+- **Expense** — belongs to a harvest and a category; `amountCents` (integer),
+  `date`, optional `description`.
+
+Harvest dates are date-only values stored at midnight UTC so they display
+consistently regardless of the server timezone. Deleting a harvest cascades to
+its expenses; deleting a category with expenses is restricted.
+
+## Moving to Postgres
+
+The schema only uses portable types (`String`, `Int`, `DateTime`), so the
+application code does not change. Prisma migration SQL is dialect-specific,
+though, so generate fresh migrations for the new database:
+
+1. Update `prisma/schema.prisma`:
+
+   ```prisma
+   datasource db {
+     provider = "postgresql"
+     url      = env("DATABASE_URL")
+   }
+   ```
+
+2. Point `DATABASE_URL` at Postgres:
+
+   ```dotenv
+   DATABASE_URL="postgresql://user:password@localhost:5432/agritrack?schema=public"
+   ```
+
+3. Replace the SQLite migrations with Postgres ones and seed:
+
+   ```bash
+   rm -rf prisma/migrations
+   pnpm db:migrate
+   pnpm db:seed
+   ```
+
+`pnpm db:migrate` creates and applies the initial migration for the new
+provider. Commit the regenerated `prisma/migrations` directory.
