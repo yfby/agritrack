@@ -21,6 +21,7 @@ model Harvest {
   name      String
   crop      String?
   startDate DateTime
+  // Enforced by a CHECK constraint in the migration: endDate >= startDate.
   endDate   DateTime?
   // "ACTIVE" | "CLOSED" (kept as a string so the schema stays portable)
   status    String   @default("ACTIVE")
@@ -45,6 +46,7 @@ model Expense {
   id          String   @id @default(cuid())
   harvestId   String
   categoryId  String
+  // Enforced by a CHECK constraint in the migration: amountCents > 0.
   amountCents Int
   date        DateTime
   description String?

@@ -82,9 +82,17 @@ export function HarvestActions({
             setConfirming(true);
           }}
           className={dangerButtonClass}
+          disabled={isClosed}
+          title={isClosed ? "Reopen this harvest before deleting it." : undefined}
         >
           <TrashIcon /> Delete harvest
         </button>
+
+        {isClosed ? (
+          <p className="w-full text-xs text-stone-500">
+            Reopen this harvest before deleting it.
+          </p>
+        ) : null}
       </div>
 
       {statusState.status !== "idle" && statusState.message ? (
