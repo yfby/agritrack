@@ -58,6 +58,8 @@ export function HarvestActions({
             setEditing((value) => !value);
           }}
           className={ghostButtonClass}
+          disabled={isClosed}
+          title={isClosed ? "Reopen this harvest before editing it." : undefined}
           aria-expanded={editing}
         >
           <PencilIcon /> Edit harvest
@@ -90,7 +92,8 @@ export function HarvestActions({
 
         {isClosed ? (
           <p className="w-full text-xs text-stone-500">
-            Reopen this harvest before deleting it.
+            This harvest is closed and read-only. Reopen it before editing or
+            deleting it.
           </p>
         ) : null}
       </div>
@@ -101,7 +104,7 @@ export function HarvestActions({
         </div>
       ) : null}
 
-      {editing ? (
+      {editing && !isClosed ? (
         <form
           key={`${values.name}-${values.crop}-${values.startDate}-${values.endDate}-${values.notes}`}
           action={editAction}
@@ -131,7 +134,7 @@ export function HarvestActions({
         </form>
       ) : null}
 
-      {confirming ? (
+      {confirming && !isClosed ? (
         <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3">
           <p className="text-sm text-red-900">
             Delete <strong>{harvestName}</strong>

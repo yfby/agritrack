@@ -54,6 +54,7 @@ export function HarvestHeader({ harvest }: { harvest: HarvestDetailData }) {
       </div>
 
       <HarvestActions
+        key={harvest.status}
         harvestId={harvest.id}
         harvestName={harvest.name}
         expenseCount={harvest.expenses.length}

@@ -19,9 +19,9 @@ Server Actions, and Zod.
   totals refresh in place.
 - **Categories** — add, rename, recolor, and delete. Deleting a category that is
   still used by an expense is blocked with an explanatory message.
-- **Close / reopen** — a closed harvest is read-only for expenses and cannot be
-  deleted; reopen it to make changes or delete it. Deleting an open harvest
-  removes its expenses.
+- **Close / reopen** — a closed harvest is a finished record: its details and
+  expenses cannot be edited and it cannot be deleted. Reopen it to make changes
+  or delete it. Deleting an open harvest removes its expenses.
 - **Validation** — every form is validated server-side with Zod (required
   fields, valid dates, amount greater than zero), with SQLite CHECK constraints
   backing the amount and harvest-date rules at the database level.
@@ -152,10 +152,11 @@ The path is resolved relative to `prisma/schema.prisma`.
 
 Harvest dates are date-only values stored at midnight UTC so they display
 consistently regardless of the server timezone. Deleting an open harvest
-cascades to its expenses; deleting a closed harvest is blocked until it is
-reopened, and deleting a category with expenses is restricted. The database
-enforces `amountCents > 0` and `endDate >= startDate` with CHECK constraints, so
-these rules also hold for writes that bypass the app.
+cascades to its expenses; a closed harvest is read-only and cannot be deleted
+until it is reopened, and deleting a category with expenses is restricted. The
+database enforces `amountCents > 0` and `endDate >= startDate` with CHECK
+constraints, and blocks edits/deletes of closed harvests with triggers, so these
+rules also hold for writes that bypass the app.
 
 ## Moving to Postgres
 

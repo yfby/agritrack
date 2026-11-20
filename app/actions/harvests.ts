@@ -74,9 +74,12 @@ export async function updateHarvest(
 
   const existing = await prisma.harvest.findUnique({
     where: { id: id.data },
-    select: { id: true },
+    select: { id: true, status: true },
   });
   if (!existing) return errorState("That harvest no longer exists.");
+  if (existing.status === "CLOSED") {
+    return errorState("This harvest is closed. Reopen it before editing it.");
+  }
 
   await prisma.harvest.update({
     where: { id: id.data },
