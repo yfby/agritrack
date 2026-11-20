@@ -4,6 +4,7 @@ import { NewHarvestPanel } from "@/components/harvests/NewHarvestPanel";
 import { StatusBadge } from "@/components/ui/Badges";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ChevronRightIcon, SproutIcon } from "@/components/ui/Icons";
+import { requireAuth } from "@/lib/auth";
 import { formatDateRange, todayInputValue } from "@/lib/dates";
 import { formatCurrency } from "@/lib/money";
 import { getHarvestSummaries } from "@/lib/queries";
@@ -11,6 +12,7 @@ import { cardClass } from "@/lib/ui";
 
 export async function HarvestListSection() {
   await connection();
+  await requireAuth();
   const [harvests, today] = await Promise.all([
     getHarvestSummaries(),
     Promise.resolve(todayInputValue()),

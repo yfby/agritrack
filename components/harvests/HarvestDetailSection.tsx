@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { HarvestDetails } from "@/components/harvests/HarvestDetails";
 import { HarvestHeader } from "@/components/harvests/HarvestHeader";
+import { requireAuth } from "@/lib/auth";
 import { todayInputValue } from "@/lib/dates";
 import { getCategoryBreakdown, getHarvestDetail } from "@/lib/queries";
 import Link from "next/link";
@@ -13,6 +14,7 @@ export async function HarvestDetailSection({
   params: Promise<{ id: string }>;
 }) {
   await connection();
+  await requireAuth();
   const { id } = await params;
   const result = await getHarvestDetail(id);
 

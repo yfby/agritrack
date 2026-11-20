@@ -8,6 +8,8 @@ Server Actions, and Zod.
 
 ## Features
 
+- **Password login** — a single app password (no username) protects every page
+  and action. A signed, httpOnly cookie keeps the session for seven days.
 - **Harvests** — create, edit, and delete harvests. The list shows the crop,
   status, total spend, and expense count, newest first.
 - **Harvest detail** — category totals with percentages and horizontal bars,
@@ -30,14 +32,44 @@ Server Actions, and Zod.
 
 Requires Node.js 20+ and pnpm.
 
-```bash
-pnpm install
-cp .env.example .env
-pnpm db:migrate   # creates prisma/dev.db and runs the seed
-pnpm dev
-```
+1. Install dependencies:
 
-Open <http://localhost:3000>.
+   ```bash
+   pnpm install
+   ```
+
+2. Create your environment file from the template:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Set the login password. Open `.env` and replace `APP_PASSWORD="change-me"`
+   with a password of your choice. This is the only credential — there is no
+   username. See [Login password](#login-password) for details.
+
+4. Create the SQLite database, apply migrations, and install the default
+   categories:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+5. Start the development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+6. Open <http://localhost:3000>. You will be sent to `/login`; enter the
+   password you set in step 3. Use **Log out** in the header to end the session.
+
+To run a production build instead of the dev server:
+
+```bash
+pnpm build
+pnpm start
+```
 
 If migrations have already been applied and you only need the default
 categories:
@@ -63,6 +95,29 @@ and Other.
 | `pnpm db:studio` | Open Prisma Studio to browse the database.        |
 
 ## Configuration
+
+### Login password
+
+AgriTrack has one shared password, not individual user accounts.
+
+**Setting it:** copy `.env.example` to `.env` and replace the placeholder with
+your chosen password, then restart the server:
+
+```dotenv
+APP_PASSWORD="a-long-random-password"
+```
+
+**How it is stored:** the password itself only lives in `APP_PASSWORD` in `.env`
+on the server. That file is git-ignored and is never committed. Nothing is
+written to the SQLite database: on login, the submitted value and the configured
+password are each hashed with SHA-256 and compared with a timing-safe
+comparison. The password is never included in a session cookie.
+
+**How sessions work:** a successful login sets an `httpOnly`, `SameSite=Lax`
+cookie containing an expiry timestamp and an HMAC signature keyed by
+`APP_PASSWORD`. The cookie is valid for seven days (and is only sent over HTTPS
+in production). Changing `APP_PASSWORD` invalidates every existing session, so
+users must log in again. Use a long, unique value for any shared deployment.
 
 ### Currency
 

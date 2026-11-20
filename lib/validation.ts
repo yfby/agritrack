@@ -77,6 +77,8 @@ export const categorySchema = z.object({
 
 export const idSchema = z.string().trim().min(1, "Missing id");
 
+export const passwordSchema = z.string().min(1, "Password is required").max(200);
+
 export const harvestStatusSchema = z.enum(["ACTIVE", "CLOSED"]);
 
 /** Turns Zod field errors into a flat { field: firstMessage } map. */

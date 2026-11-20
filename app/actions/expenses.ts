@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { errorState, successState, type ActionState } from "@/lib/action-state";
+import { isAuthenticated } from "@/lib/auth";
 import {
   expenseSchema,
   fieldErrorsFrom,
@@ -34,6 +35,10 @@ export async function createExpense(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const harvestId = idSchema.safeParse(formData.get("harvestId"));
   if (!harvestId.success) return errorState("Missing harvest id.");
 
@@ -78,6 +83,10 @@ export async function updateExpense(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) return errorState("Missing expense id.");
 
@@ -128,6 +137,10 @@ export async function deleteExpense(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) return errorState("Missing expense id.");
 

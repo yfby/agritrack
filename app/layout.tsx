@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import "./globals.css";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { NavLinks } from "@/components/NavLinks";
 import { CURRENCY, CURRENCY_SYMBOL } from "@/lib/money";
 
@@ -58,6 +59,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               }
             >
               <NavLinks />
+            </Suspense>
+            <Suspense fallback={null}>
+              <LogoutButton />
             </Suspense>
           </div>
         </header>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { errorState, successState, type ActionState } from "@/lib/action-state";
+import { isAuthenticated } from "@/lib/auth";
 import {
   categorySchema,
   fieldErrorsFrom,
@@ -27,6 +28,10 @@ export async function createCategory(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const parsed = categorySchema.safeParse({
     name: formData.get("name") ?? "",
     color: formData.get("color") ?? "",
@@ -58,6 +63,10 @@ export async function updateCategory(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) return errorState("Missing category id.");
 
@@ -101,6 +110,10 @@ export async function deleteCategory(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) return errorState("Missing category id.");
 

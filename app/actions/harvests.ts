@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { errorState, successState, type ActionState } from "@/lib/action-state";
+import { isAuthenticated } from "@/lib/auth";
 import {
   fieldErrorsFrom,
   harvestSchema,
@@ -30,6 +31,10 @@ export async function createHarvest(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const parsed = harvestSchema.safeParse(harvestFormData(formData));
 
   if (!parsed.success) {
@@ -52,6 +57,10 @@ export async function updateHarvest(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) return errorState("Missing harvest id.");
 
@@ -82,6 +91,10 @@ export async function deleteHarvest(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) return errorState("Missing harvest id.");
 
@@ -104,6 +117,10 @@ export async function setHarvestStatus(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!(await isAuthenticated())) {
+    return errorState("Your session has expired. Please log in again.");
+  }
+
   const id = idSchema.safeParse(formData.get("id"));
   const status = harvestStatusSchema.safeParse(formData.get("status"));
 
